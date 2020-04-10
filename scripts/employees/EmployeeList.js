@@ -3,17 +3,21 @@ import { Employee } from "./Employee.js";
 import { useComputers } from "../computers/ComputerProvider.js";
 import { useDepartments } from "../departments/DepartmentProvider.js";
 import { useLocations } from "../locations/LocationProvider.js";
+import { useCustomerEmployees } from "../customers/useCustomerEmployeeProvider.js";
+import { useCustomers } from "../customers/CustomerProvider.js";
 
 const contentTarget = document.querySelector(".employeesContainer")
 
 // names the function render
 const render = employeesToRender => {
-    // placing the variable computers equal to the array of useComputers?
+    
     const computers = useComputers()
     const departments = useDepartments()
     const locations = useLocations()
+    const employeeCustomers = useCustomerEmployees()
+    const customers = useCustomers()
 
-    // map over employeesToRender and then try to find the matching computer?
+    
     contentTarget.innerHTML = employeesToRender.map(
         (employeeObject) => {
             // Find the related computer for the current employee
@@ -25,9 +29,24 @@ const render = employeesToRender => {
             // Find the related location for the current employee
             const foundLocation = locations.find( location => location.id === employeeObject.locationId )
 
+            // Get all customer relationships for the current employee
+            const thisEmployeesCustomerRelationships = employeeCustomers.filter(
+                empCustRel => {
+                    return employeeObject.id === empCustRel.employeeId
+                }
+            )
 
-            // Two returns? One for the HTML and the other: All for the html
-            return Employee(employeeObject, foundComputer, foundDepartment, foundLocation)
+            // For each relationship, convert to corresponding customer object
+            const theMatchingCustomers = thisEmployeesCustomerRelationships.map(
+                rel => {
+                    const customer = customers.find(cust => rel.customerId === cust.id)
+                    return customer
+                }
+            )
+
+
+            // antidebuggability bugbear bugaloo
+            return Employee(employeeObject, foundComputer, foundDepartment, foundLocation, theMatchingCustomers)
         }
     ).join("")
 }
